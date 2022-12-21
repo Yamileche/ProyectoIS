@@ -35,11 +35,8 @@ class Zp:
                A =  A.mult(b)
             b = b.mult(b)
         return A
-        
-
 
     def inv(self, po = 1):
         if po == 1:
             po = Entero(self.getMod()).phi()-1
         return self.pow(po)
-

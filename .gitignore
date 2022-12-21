@@ -1,4 +1,5 @@
 *.txt
 Files
-Uso.ipynb
+*.ipynb
 __pycache__
+.gitignore

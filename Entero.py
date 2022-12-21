@@ -1,12 +1,27 @@
-
 class Entero:
-    __primes = list()
+    __primesTXT = open("Files/primes.txt", "r")
+    __primes = list(map(lambda x: int(x),__primesTXT.read().split(" ")[:-1]))
+    __primesTXT.close()
+    __primesIniLen = len(__primes)
+
+    
     def __init__(self, k = int, fact = list) -> None:
         
         self.__k = k
         self.__fact = []
         self.__phi = 0
 
+    @staticmethod
+    def primesW():
+        aux = open("Files/primes.txt", "a")
+        au = ""
+        if Entero.__primesIniLen < len(Entero.__primes):
+            for i in Entero.__primes[Entero.__primesIniLen:]:
+                au = au + str(i) + " "
+            aux.write(au)
+            Entero.__primesIniLen = len(Entero.__primes)
+        aux.close()
+        
 
     def factorizacion(self) -> list:
         
@@ -22,6 +37,7 @@ class Entero:
             return self.__fact 
         
         isPrime = True
+
         primos  = Entero.__primes
 
         if not primos: 
@@ -29,44 +45,47 @@ class Entero:
             primos.append(3)
             primos.append(5)
         for i in range(0, primos.__len__()):
+            if auxk< primos[i]: break
             while auxk % primos[i] == 0:
                 auxk = auxk//primos[i]
                 self.__fact.append(primos[i])
                 
-        if auxk == 1:
-            return self.__fact
+        if auxk == 1: return self.__fact
         l = 1
         while 6*l + 5 <primos[primos.__len__()-1]: l +=1
 
 
-        for i in range(l,auxk):
-            if 6*i+5>auxk and 6*i+1>auxk:  break
+        for i in range(l,auxk+1):
+            Entero.primesW()
+            S5 = 6*i+5
+            S1 = 6*i+1
+            if S5>auxk and S1>auxk:  break
             
             isPrime1 = True
             isPrime2 = True
-            
+
             for j in range(primos.__len__()):
-                if((6*i+1)%primos[j]==0): 
+                if(isPrime1 and (S1)%primos[j]==0): 
                     isPrime1 = False
-                    break
-                if((6*i+5)%primos[j]==0): 
+
+                if(isPrime2 and (S5)%primos[j]==0): 
                     isPrime2 = False
-                    break
+    
+                if(not isPrime1 and not isPrime2): break
                 
-            if isPrime1: primos.append(6*i+1)
+            if isPrime1: primos.append(S1)
 
             while isPrime1 and auxk % primos[primos.__len__()-1] == 0: 
                 auxk = auxk//primos[primos.__len__()-1]
                 self.__fact.append(primos[primos.__len__()-1])
 
-            if isPrime2 : primos.append((6*i+5))
+            if isPrime2: primos.append(S5)
 
             while isPrime2 and auxk % primos[primos.__len__()-1] == 0:
                 auxk = auxk//primos[primos.__len__()-1]
                 self.__fact.append(primos[primos.__len__()-1])
 
-            isPrime1 = True
-            isPrime2 = True
+
             
         self.__fact.sort()
         return self.__fact
@@ -75,9 +94,7 @@ class Entero:
     def phi(self) -> int:
         """Obtiene la función phi valuada en el entero
         """
-        
         if self.__fact == list(): self.factorizacion()
-        
         if abs(self.__k) == 1: return 1
         
         if (self.__phi > 0): return self.__phi
@@ -145,3 +162,13 @@ class Entero:
             
         if reversed: bin.reverse()
         return bin
+    @staticmethod
+    def esPrimo(p):
+        for i in Entero._Entero__primes:
+            if p < i: break
+            if p%i == 0: False
+        return True
+    @staticmethod
+    def ranPrime():
+        from random import choice
+        return choice(Entero.__primes)
