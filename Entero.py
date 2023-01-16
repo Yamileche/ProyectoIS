@@ -1,5 +1,5 @@
 class Entero:
-    __primesTXT = open("Files/primes.txt", "r")
+    __primesTXT = open("primes.txt", "r")
     __primes = list(map(lambda x: int(x),__primesTXT.read().split(" ")[:-1]))
     __primesTXT.close()
     __primesIniLen = len(__primes)
