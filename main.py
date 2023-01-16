@@ -3,172 +3,92 @@ import click
 from Encrypt import *
 from random import choice
 from Entero import *
-import sys
-import os
-from sympy.ntheory import factorint
 
-
-global path, Bpath, exit
-exit = False
 @click.group()
 def main():
     """Encrypting program"""
-def getDefaultPath():
-    global path, Bpath, exit
-    Bpath = False
-    if exit: sys.exit()
-    while True:
-        path = input("Enter default path: ")
-        path = path.strip()
-        if os.path.isdir(path) or path == "":
-            if path != "": Bpath = True
-            break
-        else:
-            print("Path does not exist, try again")
-def getTextFromFile() -> str:
-    global path, Bpath, exit
-    exit = False
-    text = ""
-    if exit: sys.exit()
-    while True:
+
+def filterKeys(keysAux = "") ->list:
+    """ Put on a list keys from text
+    Args:
+        keysAux (str, optional): Text of keys. Defaults to "".
+    Returns:
+        list: list of keys
+    """
+    keys = list()
+    for letter in keysAux:
+        if letter.isnumeric():
+            keys.append(letter)
+    return keys
+def filterKeysInt(keysAux = "") ->list:
+    """ Put on a list keys from text
+    Args:
+        keysAux (str, optional): Text of keys. Defaults to "".
+    Returns:
+        list: list of keys
+    """
+    keys = list()
+    for letter in keysAux:
+        if letter.isnumeric():
+            keys.append(int(letter))
+    return keys
+def getKeysFromFile(path = "") -> list: 
+    """ Get and separate the keys
+    Returns:
+        list(str): list of keys
+    """
+    inp = open(path, "r")
+    keysAux = inp.read().replace("\n", " ").replace("\\", " ").split(" ")
+    inp.close()
+
+    return filterKeys(keysAux=keysAux)
+def getKeysFromFileInt(path = "") -> list: 
+    """ Get and separate the keys
+    Returns:
+        list(int): list of keys
+    """
+    inp = open(path, "r")
+    keysAux = inp.read().split(" ").replace("\n", " ").replace("\\", " ")
+    inp.close()
+
+    return filterKeysInt(keysAux=keysAux)
+def getTextFromTxtFile(path = "") -> str:
+    """ Get text from certain txt file
+    Args:
+        path (str): txt's path Defaults to "".
+    Returns:
+        str: Text
+    """
+    if path == "":
+        raise Exception("Path is empty") 
+    try:
+        inp = open(path, "r")
         try:
-            print("Enter data by console 'c' or by txt 't'? (press 'e' to exit)")
-            readMode = input().strip()
-            if readMode.lower() == 'e': 
-                exit = True
-                break
-            if readMode.lower() == 'c':
-                text = input("Enter text:\n\n")
-            else:
-                if Bpath:
-                    fileName = input("Enter file name: ").strip()
-                    pathAux = path + "/" + fileName + ".txt"
-                else:
-                    while True:    
-                        pathAux = input("Enter path: ")
-                        if os.path.isfile(pathAux): break
-                        else: print("File does not exist")        
-                inp = open(pathAux, "r")
-                text = inp.read()
-                inp.close()
-            break
+            text = inp.read()
         except:
-            print("Error reading file. Try again")
-        if exit: sys.exit()
-    print("Text reading successful")
+            print("Error reading file at getTextFromTxtFile")
+            inp.close()
+    except:
+        print("Error opening file at getTextFromTxtFile")
+
     return text
-def giveText(text = ""):
-    global path, Bpath, exit
-    if exit: sys.exit()
-    print("Get data by console 'c' or by txt 't'?")
-    election = input().strip()
-    if election.lower() == 'c':
-        print(text)
-    else:
-        while True:
-            if Bpath:
-                pathAux = path 
-            else:
-                while True:
-                    pathAux = input("Enter path: ")
-                    if os.path.isdir(pathAux): break
-                    else: print("Path does not exist, try again")
-            while True:
-                name = input("Enter file's name: ")
-                if os.path.isfile(pathAux + "/" + name + ".txt"):
-                    election = input("File does exist, do you want to conitue? (Y/N): ").strip().lower()
-                    if election == "y":
-                        pathAux = pathAux + "/" + name + ".txt"
-                        break
-                else: 
-                    pathAux = pathAux + "/" + name + ".txt"
-                    break
-            try:
-                output = open(pathAux, "w")
-                output.write(text)
-                output.close()
-                break
-            except:
-                print("Error writing in file " + pathAux)
-def textToKeys(text = "")->list:
-    global exit
-    if exit: sys.exit()
-    text = text.split(" ")
-    key = list()
-    for i in text:
-        if i.isnumeric():
-            key.append(int(i))
-    return key
-def readKeys()-> list:
-    global exit
-    if exit: sys.exit()
-    keys = list()
-    while True:
-        keys = getTextFromFile()
-        keys = textToKeys(keys)
-        if len(keys) == 0:
-            if exit: break
-            print("Error reading keys, try again")
-        else: 
-            print("Keys reading successful")
-            break
-    if exit: sys.exit()
-    return keys
-def getKeysAsText() -> str:
-    auxKeys = readKeys()
-    keys = ""
-    for k in auxKeys:
-        keys = keys + str(k) + "  "
-    return keys
-def giveKeys(keys = []):
-    global path, Bpath, exit
-    if exit: sys.exit()
-    text = ""
-    for i in keys:
-        text = text + str(i) + " "
-    giveText(text)
-def randomPrime() -> int:
-    return Entero.ranPrime()
-def randomKeys() -> list:
-    while True:
-        choice = input("Random moddule? (Y/N)\n").strip().lower()
-        if choice == "y":
-            p = randomPrime()
-            break
-        else:
-            p = input("Enter module: ").strip()
-            if p.isnumeric() and int(p)>1:
-                p = int(p)
-                break
-    while True:
-        n = input("Enter number of keys: ").strip()
-        if n.isnumeric() and int(n) > 0:
-            n = int(n)
-            break
-        else: print("Value error, try again")
-    keys = list()
+def writeTextToTxt(path = "", toWrite = "", nameFile = "output"):
+    """ Write text in a Txt
+
+    Args:
+        path (str): Container file's path  . Defaults to "".
+        toWrite (str): Text to write. Defaults to "".
+        nameFile (str): Txt's name to create. Defaults to "output".
+    """
     
-    pFactors = list(factorint(p).keys())
-    isPrime = False
-    if len(pFactors) == 1:
-        isPrime = True
-    print("Wait, calculating keys...")
-    for i in range(n):
-        while True:
-            again = False
-
-            aux = random.choice(range(p))
-            fac = factorint(aux).keys()
-            if not isPrime:
-                for i in pFactors:
-                    if i in fac:
-                        again = True
-            if not again:
-                keys.append(aux)
-                break
-    return keys
+    if nameFile.strip() == "": nameFile = "output"
+    path = path + "/" +nameFile+".txt"
+    output = open(path, "w")
+    output.write(toWrite)
+    output.close()
 
 
+    
 
 @main.command()
 @click.option('--cesaro',is_flag =True,  help = 'Cesaro method')
@@ -176,130 +96,376 @@ def randomKeys() -> list:
 @click.option('--vernam',is_flag =True,  help = 'Vernam method')
 def encrypt(cesaro, vigenere, vernam):
     """Encrypt mode"""
-    getDefaultPath()
-    if exit: sys.exit()
+    path = ""
     if cesaro:
-        print("Cesaro method\n")
-        while True:
-            try: 
-                a = int(input("Enter a: "))
-                b = int(input("Enter b: "))
-                p = int(input("Enter module: "))
-                break
-            except:
-                print("Invalid values. Try again")
-        text = getTextFromFile()
+        print("Cesaro method")
+        a = int(input("Enter a: "))
+        b = int(input("Enter b: "))
+        p = int(input("Enter module: "))
+        print("Enter text by console 'c' or by txt 't'?")
+        ele = input().strip()
+        if ele.lower() == 'c':
+            text = input("Enter text:\n\n")
+        else:
+            path = input("Enter path: ")
+            inp = open(path, "r")
+            text = inp.read()
+            inp.close()
+
         out = Encryptor(text, mod = p).cesaro(a = a, b = b)
-        giveText(text=out)
+
+        
+        print("Obtain result by console 'c' or by txt?")
+        election = input().strip()
+
+        if election.lower() == 'c':
+            print(out)
+        else:
+            path = input("Enter path: ")
+            path +="/output.txt"
+            output = open(path, "w")
+            output.write(out)
+            output.close()
     elif vigenere:
-        print("Vigenere method\n")
-        print("Values 'a' will be read\n")
-        a = readKeys()
-        print("\n\nValues 'b' will be read\n")
-        b = readKeys()
-        while True:
-            p = input("Enter module: ").strip()
-            if p.isnumeric() and int(p)>1:
-                p = int(p)
-                break
-            else:
-                print("Invalid number, try again")
-        print("\n\nText to encrypt")
-        text = getTextFromFile()
+        print("Vigenere method")
+        p = int(input("Enter module: "))
+        print("\n\nEnter elements by console (c) or by txt (t)?")
+        enter = input()
+        enter.strip().lower()
+        if enter.strip().lower() == "c":
+            print("Enter 'a' values separated by spaces:")
+            aString = input()
+            a = list()
+            for number in aString.split(" "):
+                if number.isnumeric:
+                    a.append(int(number))
+            if len(a) == 0:
+                print("Failure capturing 'a' values")
+            print("Enter 'b' values separated by spaces:")
+            bString = input()
+            b = list()
+            for number in bString.split(" "):
+                if number.isnumeric:
+                    b.append(int(number))
+            if len(b) == 0:
+                print("Failure capturing 'b' values")
+        else:
+            print("Enter path for 'a' values (must be separated by spaces)")
+            path = input().strip()
+            #Aquí debe ir un try catch por si no abre el archivo
+            aKeys = open(path, "r")
+            aString = aKeys.read().replace("\n", " ").replace("\\", " ")
+            a = list()
+            for number in aString.split(" "):
+                if number.isnumeric():
+                    a.append(int(number))
+            if len(a) == 0:
+                print("Failure capturing 'a' values")
+            aKeys.close()
+
+            print("\n\nEnter path for 'b' values (must be separated by spaces)")
+            path = input().strip()
+            #Aquí debe ir un try catch por si no abre el archivo
+            bKeys = open(path, "r")
+            bString = bKeys.read().replace("\n", "").replace("\\", "")
+            b = list()
+            for number in bString.split(" "):
+                if number.isnumeric():
+                    b.append(int(number))
+            if len(b) == 0:
+                print("Failure capturing 'b' values")
+            bKeys.close()
+
+        print("Enter text by console (c) or by txt (t)?")
+        ele = input().strip()
+        if ele.lower() == 'c':
+            text = input("Enter text:\n\n")
+        else:
+            #Un Try catch por si no abre el archivo
+            path = input("Enter path: ")
+            inp = open(path, "r")
+            text = inp.read()
+            inp.close()
 
         out = Encryptor(text, mod = p).vigenere(a = a, b = b)
-        giveText(text=out)
-    elif vernam:
-        print("Vigenere method\n")
-        while True:
-            p = input("Enter module: ").strip()
-            if p.isnumeric() and int(p) > 1:
-                p = int(p)
-                break
-            else:
-                print("Invalid value, try again\n")
-        print("\n\nText to encrypt")
-        text = getTextFromFile()
-        out = Encryptor(text, mod = p).Vernam()
-        print("\n\nGetting encrypted text")
-        giveText(out[0])
-        print("\n\nGetting 'a' keys")
-        giveKeys(out[1])
-        print("\n\nGetting 'b' keys")
-        giveKeys(out[2])
 
+        print("Obtain result by console 'c' or by txt 't'?")
+        election = input().strip()
+
+        if election.lower() == 'c':
+            print(out)
+        else:
+            default = input("In default path /home/Documents?\n(Y/n)").strip().lower()
+            if default == "y" or default == "yes" or default == "si" or default == "s":
+                path = "/home/Documents"
+            else:
+                path = input("Enter path: ").strip()
+            path +="/output.txt"
+            output = open(path, "w")
+            output.write(out)
+            output.close() 
+    elif vernam:
+        p = int(input("Enter module: "))
+
+        print("Enter text by console (c) or by txt (t)?")
+        ele = input().strip()
+        if ele.lower() == 'c':
+            text = input("Enter text:\n\n")
+        else:
+            #Un Try catch por si no abre el archivo
+            path = input("Enter path: ")
+            inp = open(path, "r")
+            text = inp.read()
+            inp.close()
+
+        out = Encryptor(text, mod = p).Vernam()
+
+        print("Obtain result by console 'c' or by txt 't'?")
+
+        election = input().strip()
+
+        if election.lower() == 'c':
+            print(out[0])
+        else:
+            default = input("In default path /home/Documents?\n(Y/n)").strip().lower()
+            if default == "y" or default == "yes" or default == "si" or default == "s":
+                path = "/home/Documents"
+            else:
+                path = input("Enter path: ").strip()
+            path +="/output.txt"
+            output = open(path, "w")
+            output.write(out[0])
+            output.close() 
+    
+        print("Obtain keys by console 'c' or by txt 't'?")
+
+
+        election = input().strip()
+        aKeysString = ""
+        for i in out[1]:
+            aKeysString = aKeysString +  str(i) + " "
+        bKeysString = ""
+        for i in out[2]:
+            bKeysString = bKeysString + str(i) + " "
+
+        if election.lower() == 'c':
+            print("\nakeys\n",aKeysString)
+            print("\n\nbkeys\n", bKeysString)
+        else:
+            default = input("In default path /home/Documents?\n(Y/n)").strip().lower()
+            if default == "y" or default == "yes" or default == "si" or default == "s":
+                path = "/home/Documents"
+            else:
+                path = input("Enter path: ").strip()
+
+            at = open(path+"/aKeys.txt", "w")
+            bt = open(path+"/bKeys.txt", "w")   
+            at.write(aKeysString)
+            bt.write[bKeysString]
+            at.close()
+            bt.close()
 @main.command()
 @click.option('--cesaro',is_flag =True,  help = 'Cesaro method')
 @click.option('--vigenere',is_flag =True,  help = 'Vigenere method')
 @click.option('--vernam',is_flag =True,  help = 'Vernam method')
 def decrypt(cesaro, vigenere, vernam):
     """Decrypt mode"""
-    getDefaultPath()
-    if exit: sys.exit()
+    path = ""
     if cesaro:
-        print("Cesaro method\n")
-        while True:
-            try: 
-                a = int(input("Enter a: "))
-                b = int(input("Enter b: "))
-                p = int(input("Enter module: "))
-                break
-            except:
-                print("Invalid values. Try again")
-        print("Text's keys will be read")
-        keys = getKeysAsText()
-        print("\nDecrypting...\n\n")
-        text = Encryptor(to_decrypt=keys, mod=p).inv_cesaro(a=a, b=b)
-        giveText(text=text)
-    elif vigenere:
-        print("Vigenere method\n")
-        print("Values 'a' will be read\n")
-        a = readKeys()
-        print("\n\nValues 'b' will be read\n")
-        b = readKeys()
-        while True:
-            p = input("Enter module: ").strip()
-            if p.isnumeric() and int(p)>1:
-                p = int(p)
-                break
-            else:
-                print("Invalid number, try again")
-        print("Text's keys will be read")
-        print("\nDecrypting...\n\n")
-        text = Encryptor(to_decrypt=keys, mod=p).vigenere(a=a, b=b)
-        giveText(text=text)
+        print("Cesaro method")
+        a = int(input("Enter a: "))
+        b = int(input("Enter b: "))
+        p = int(input("Enter module: "))
+ 
+
+        print("Enter keys by console 'c' or by txt 't'?")
+        ele = input().strip()
+        keys = []
+        keysAux = ""
+
+        if ele.lower() == 'c':
+            keysAux  =input("Enter keys:\n\n")
+            keys = filterKeys(keysAux)
+        else:
+            path = input("Enter key's path: ")
+            keys = getKeysFromFile(path)
+
+        if not keys: raise Exception("Error de lectura Cesaro keys en main.py en decrypt")
+
+        print("\nDecrypting\n")
+
+        out = Encryptor(to_decrypt=keys, mod = p).inv_cesaro(a = a, b = b)
+
         
+        print("Obtain result by console 'c' or by txt?")
+        writingChoice = input().strip()
+ 
+        if writingChoice.lower() == 'c':
+            print(out)
+        else:
+            path = input("Enter path: ")
+            nameFile = input("Enter txt's name (default output): ")
+            writeTextToTxt(path, out, nameFile)
+
+    elif vigenere:
+
+        print("Vigenere method")
+        p = int(input("Enter module: "))
+
+        print("\n\nEnter elements by console (c) or by txt (t)?")
+        readingChoice = input()
+
+        if readingChoice.strip().lower() == "c":
+
+            print("Enter 'a' values separated by spaces:")
+            aString = input()
+            a = filterKeysInt(aString.split(" "))
+            if len(a) == 0: raise Exception("Reading failure Vigenere a-keys at main.py at decrypt")
+
+            print("Enter 'b' values separated by spaces:")
+            bString = input()
+            b = filterKeysInt(bString.split(" "))
+            if len(b) == 0: raise Exception("Reading failure Vigenere b-keys at main.py at decrypt")
+
+        else:
+
+            print("Enter path for 'a' values (it must be separated by spaces)")
+            path = input().strip()
+            a = getKeysFromFileInt(path)
+            if len(a) == 0: raise Exception("Reading failure Vigenere a-keys at main.py at decrypt")
+            
+            print("\n\nEnter path for 'b' values (it must be separated by spaces)")
+            path = input().strip()
+            b = getKeysFromFileInt(path)
+            if len(b) == 0: raise Exception("Reading failure Vigenere a-keys at main.py at decrypt")
+
+        print("Enter keys by console (c) or by txt (t)?")
+        readingChoice = input()
+        keys = []
+        keysAux = ""
+
+        if readingChoice.lower() == 'c':
+            keysAux = input("Enter text:\n\n")
+            keys = filterKeys(keysAux)
+        else:
+            path = input("Enter path: ")
+            keys = getKeysFromFile(path)
+
+        if not keys: raise Exception("Reading failure Vigenere keys at main.py at decrypt") 
+
+        out = Encryptor(to_decrypt=keys, mod = p).vigenere(a = a, b = b)
+
+        print("Obtain result by console 'c' or by txt 't'?")
+        writingChoice = input().strip()
+ 
+        if writingChoice.lower() == 'c':
+            print(out)
+        else:
+            path = input("Enter path: ")
+            nameFile = input("Enter txt's name (default 'output'): ")
+            writeTextToTxt(path, out, nameFile)
     elif vernam:
-        print("Vermam method\n")
-        while True:
-            p = input("Enter module: ").strip()
-            if p.isnumeric() and int(p)>1:
-                p = int(p)
-                break
-            else:
-                print("Invalid number, try again")
-        print("Values 'a' will be read")
-        a = readKeys()
-        print("\n\nValues 'b' will be read")
-        b = readKeys()
-        print("\n\nEncrypted text will be read")
-        keys = getKeysAsText()
-        text = Encryptor(to_decrypt=keys, mod=p).inv_Vernam(a=a, b=b)
-        print("\nDecrypted text")
-        giveText(text=text)
+        p = int(input("Enter module: "))
 
-@main.command()
-def ranK():
-    "Random keys"
-    getDefaultPath()
-    giveKeys(randomKeys())
+        print("Enter keys by console (c) or by txt (t)?")
+        ele = input().strip()
+        keys = []
+        keysAux = ""
+        a = []
+        aAux = ""
+        b = []
+        bAux = ""
+        if ele.lower() == 'c':
+            keysAux = input("Enter text:\n\n")
+            aAux = input("Enter a values:\n\n")
+            bAux = input("Enter b values:\n\n")
+        else:
+            path = input("Enter key's path: ")
+            inp = open(path, "r")
+            keysAux = inp.read().split(" ")
+            inp.close()
 
-@main.command()
-def ranP():
-    "Random prime"
-    print(randomPrime())
+            path = input("Enter a's path: ")
+            inp = open(path, "r")
+            aAux = inp.read().split(" ")
+            inp.close()
+
+            path = input("Enter b's path: ")
+            inp = open(path, "r")
+            bAux = inp.read().split(" ")
+            inp.close()
+
+        for letter in keysAux:
+            if letter.isnumeric():
+                keys.append(letter)
+
+        for letter in aAux:
+            if letter.isnumeric():
+                a.append(int(letter))
+        for letter in bAux:
+            if letter.isnumeric():
+                b.append(int(letter))
+
     
 
+        out = Encryptor(to_decrypt=keys, mod = p).inv_vernam(a = a, b = b)
+
+        print("Obtain result by console 'c' or by txt 't'?")
+
+        election = input().strip()
+
+        if election.lower() == 'c':
+            print(out)
+        else:
+            default = input("In default path /home/Documents?\n(Y/n)").strip().lower()
+            if default == "y" or default == "yes" or default == "si" or default == "s":
+                path = "/home/Documents"
+            else:
+                path = input("Enter path: ").strip()
+            path +="/output.txt"
+            output = open(path, "w")
+            output.write(out)
+            output.close() 
+
+@main.command()
+@click.option('--prime', is_flag = False, help = "Returns a random prime")
+@click.option('--keys', default=0, help='Returns a random prime number and a certain number of keys smaller than the prime number')
+def random (prime, keys):
+    if prime:
+        print(Entero.ranPrime())
+        if keys:
+            for i in range(keys):
+                print(random.choice(range(2, keys)))
+    else:
+        if keys:
+            prime = input("Prime: ").strip()
+            while not prime.isnumeric():
+                print("Try again\n") 
+                prime = input("Prime: ").strip()
+            key = ""
+            for i in range(keys):
+                auxkey = choice(range(2, int(prime)))
+                while Entero.mcd(auxkey, int(prime))[0] != 1:
+                    auxkey = choice(range(2, int(prime)))
+                key = key + str(auxkey) + " "
+
+        print("\n\nObtain result by console 'c' or by txt 't'?")
+        election = input().strip()
+        if election == "c":
+            print(key)
+        else:
+
+            default = input("In default path /home/Documents?\n(Y/n)").strip().lower()
+            if default == "y" or default == "yes" or default == "si" or default == "s":
+                path = "/home/Documents"
+            else:
+                path = input("Enter path: ").strip()
+
+            at = open(path+"/aKeys.txt", "w")   
+            at.write(key)
+            at.close()
+    
+                
 
 if __name__ == "__main__": 
     main()
