@@ -3,3 +3,4 @@ Files
 *.ipynb
 __pycache__
 .gitignore
+prime
