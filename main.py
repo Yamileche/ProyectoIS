@@ -291,7 +291,6 @@ def decrypt(cesaro, vigenere, vernam):
 @main.command()
 def ranK():
     "Random keys"
-    getDefaultPath()
     giveKeys(randomKeys())
 
 @main.command()
